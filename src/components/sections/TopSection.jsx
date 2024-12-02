@@ -1,6 +1,8 @@
 //상단 컨텐츠
 import styled from "styled-components";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useContext, useMemo } from "react";
+import { ScrollContext } from "../context/ScrollContext";
+import { useAnimation, useCanvas } from "../hooks/useScroll";
 
 const Container = styled.section`
   height: 400vh;
@@ -34,17 +36,23 @@ const Message = styled.div`
     transform:translateY(-50%);
     z-index:3;
     font-family:var(--f-ebold);;
+    opacity:0;
   }
 `;
 
 const TopSection = () => {
-  const [images, setImages] = useState([]);
-  const containerRef = useRef(null);
-  const canvasRef = useRef(null);
+  const {
+    containerRef,
+    canvasRef,
+    setImageSrc,
+    setImageType,
+    setTotalImages,
+    setOptions,
+    animationStyles
+  } = useContext(ScrollContext);
   const totalImages = 494;
-
-  // eslint-disable-next-line
-  const messages = [
+  
+  const messages = useMemo(() => [
     // option: [시작 값, 끝 값, { 애니메이션 시작 타이밍, 애니메이션 끝 타이밍 }]
     {
       text: "재활용이 아닌 새활용",
@@ -85,146 +93,17 @@ const TopSection = () => {
       ],
       opacity_in: [0, 1, { start: 0.65, end: 0.7 }],
     },
-  ]
-
-  const [messageStyles, setMessageStyles] = useState(
-    messages.map(() => ({ opacity: 0, transform: "translate(30px, 0)" }))
-  );
-
-  useEffect(() => { //메세지 이벤트
-    const handleScroll = () => {
-      const scrollY = window.scrollY; //현재 스크롤 위치
-      const maxScroll = containerRef.current.scrollHeight - window.innerHeight; //스크롤 가능한 전체 거리(섹션 높이 - 뷰포트 높이)
-      const scrollProgress = Math.min(scrollY / maxScroll, 1); //진행률
-
-      const newStyles = messages.map((message) => {
-        const calcProgress = ({start, end}, progress) => {
-          //현재 애니메이션 진행률
-          if (progress < start) return 0;
-          if (progress > end) return 1;
-
-          return (progress - start) / (end - start);
-        };
-
-        const calcValue = (startValue, endValue, progress) => {
-          //현재 애니메이션 진행률의 값 계산
-          return startValue + (endValue - startValue) * progress;
-        }
-
-        const getAnimatedValue = (inProgress, outProgress, inRange, outRange) => {
-          //현재 애니메이션 상태의 값 리턴
-          if (inProgress < 1) {
-            return calcValue(inRange[0], inRange[1], inProgress);
-          }
-          if (outRange) {
-            return calcValue(outRange[0], outRange[1], outProgress);
-          }
-          return inRange[1];
-        };
-
-        const translateInProgress = calcProgress(message.translate_in[2], scrollProgress);
-        const opacityInProgress = calcProgress(message.opacity_in[2], scrollProgress);
-
-        const translateOutProgress = calcProgress(message.translate_out?.[2] || [1, 1], scrollProgress);
-        const opacityOutProgress = calcProgress(message.opacity_out?.[2] || [1, 1], scrollProgress);
-
-        const x = getAnimatedValue(
-          translateInProgress,
-          translateOutProgress,
-          [message.translate_in[0].x, message.translate_in[1].x],
-          message.translate_out && [message.translate_out[0].x, message.translate_out[1].x]
-        );
-        
-        const y = getAnimatedValue(
-          translateInProgress,
-          translateOutProgress,
-          [message.translate_in[0].y, message.translate_in[1].y],
-          message.translate_out && [message.translate_out[0].y, message.translate_out[1].y]
-        );
-        
-        const opacity = getAnimatedValue(
-          opacityInProgress,
-          opacityOutProgress,
-          [message.opacity_in[0], message.opacity_in[1]],
-          message.opacity_out && [message.opacity_out[0], message.opacity_out[1]]
-        );
-
-        return { opacity, transform: `translate(${x}px, ${y}px)` };
-      });
-
-      setMessageStyles(newStyles); //스크롤 진행률에 맞는 값 저장
-    };
-
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, [messages]);
+  ], []);
 
   useEffect(() => {
-    const loadedImages = [];
+    setImageSrc("/src/assets/images/top/top-");
+    setImageType("jpg");
+    setTotalImages(totalImages);
+    setOptions(messages);
+  }, [setImageSrc, setImageType, setTotalImages, setOptions, messages])
 
-    for(let i = 1; i <= totalImages; i++) {
-      const img = new Image();
-
-      img.src = `/src/assets/images/top/top-${i}.jpg`;
-      
-      loadedImages.push(img);
-    }
-
-    if(totalImages === loadedImages.length) {
-      setImages(loadedImages);
-    }
-  }, []);
-
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    const ctx = canvas.getContext("2d");
-  
-    const resizeCanvas = () => {
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight;
-  
-      if (containerRef.current && images.length > 0) {
-        const scrollY = window.scrollY;
-        const maxScroll = containerRef.current.scrollHeight - window.innerHeight;
-        const scrollProgress = Math.min(scrollY / maxScroll, 1);
-  
-        const imageIndex = Math.floor(scrollProgress * (totalImages - 1));
-  
-        if (images[imageIndex] && images[imageIndex].complete) {
-          ctx.drawImage(images[imageIndex], 0, 0, canvas.width, canvas.height);
-        }
-      }
-    };
-  
-    const handleScroll = () => {
-      if (!containerRef.current || images.length === 0) return;
-  
-      const scrollY = window.scrollY;
-      const maxScroll = containerRef.current.scrollHeight - window.innerHeight;
-      const scrollProgress = Math.min(scrollY / maxScroll, 1);
-  
-      const imageIndex = Math.floor(scrollProgress * (totalImages - 1));
-  
-      if (images[imageIndex] && images[imageIndex].complete) {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        ctx.drawImage(images[imageIndex], 0, 0, canvas.width, canvas.height);
-      }
-    };
-  
-    // 이미지가 로드된 후 실행
-    if (images.length > 0 && !images[0].complete) {
-      images[0].onload = () => resizeCanvas();
-    }
-  
-    // 이벤트 리스너 추가
-    window.addEventListener("resize", resizeCanvas);
-    window.addEventListener("scroll", handleScroll);
-  
-    return () => {
-      window.removeEventListener("resize", resizeCanvas);
-      window.removeEventListener("scroll", handleScroll);
-    };
-  }, [images]);
+  useCanvas();
+  useAnimation();
 
   return (
     <Container ref={containerRef}>
@@ -237,8 +116,8 @@ const TopSection = () => {
           <p
             key={index}
             style={{
-              opacity: messageStyles[index]?.opacity,
-              transform: messageStyles[index]?.transform
+              opacity: animationStyles[index]?.opacity,
+              transform: animationStyles[index]?.transform
             }}
           >
             {message.text}

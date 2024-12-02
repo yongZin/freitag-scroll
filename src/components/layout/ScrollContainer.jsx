@@ -1,6 +1,9 @@
 //스크롤이벤트 영역 컨테이너
 import styled from "styled-components";
 import TopSection from "../sections/TopSection";
+import DetailSection from "../sections/DetailSection";
+import CitySection from "../sections/CitySection";
+import ProductSection from "../sections/ProductSection";
 
 const Container = styled.main`
 	width:100%;
@@ -19,6 +22,9 @@ const ScrollContainer = () => {
 	return (
 		<Container>
 			<TopSection />
+			<DetailSection />
+			<CitySection />
+			<ProductSection />
 		</Container>
 	)
 }
