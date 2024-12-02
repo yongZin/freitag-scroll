@@ -1,8 +1,8 @@
 import { createGlobalStyle } from "styled-components";
-import NanumSquareOTF_acL from "../assets/fonts/NanumSquareOTF_acL.woff";
-import NanumSquareOTF_acR from "../assets/fonts/NanumSquareOTF_acR.woff";
-import NanumSquareOTF_acB from "../assets/fonts/NanumSquareOTF_acB.woff";
-import NanumSquareOTF_acEB from "../assets/fonts/NanumSquareOTF_acEB.woff";
+import NanumSquareOTF_acL from "/assets/fonts/NanumSquareOTF_acL.woff";
+import NanumSquareOTF_acR from "/assets/fonts/NanumSquareOTF_acR.woff";
+import NanumSquareOTF_acB from "/assets/fonts/NanumSquareOTF_acB.woff";
+import NanumSquareOTF_acEB from "/assets/fonts/NanumSquareOTF_acEB.woff";
 
 const GlobalStyle = createGlobalStyle`
   :root{

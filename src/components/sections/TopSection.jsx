@@ -96,7 +96,7 @@ const TopSection = () => {
   ], []);
 
   useEffect(() => {
-    setImageSrc("/src/assets/images/top/top-");
+    setImageSrc("/assets/images/top/top-");
     setImageType("jpg");
     setTotalImages(totalImages);
     setOptions(messages);
