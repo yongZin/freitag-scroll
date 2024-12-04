@@ -1,20 +1,20 @@
 //상단 컨텐츠
 import styled from "styled-components";
-import { useEffect, useContext, useMemo } from "react";
+import { useRef, useEffect, useContext, useMemo } from "react";
 import { ScrollContext } from "../context/ScrollContext";
-import { useAnimation, useCanvas } from "../hooks/useScroll";
+import { useObserver, useAnimation, useCanvas } from "../hooks/useScroll";
 
 const Container = styled.section`
   height: 400vh;
   position:relative;
   /* pointer-events:none; */
-  &:before{
-    content:"";
-    background-color:rgba(1, 1, 1, 0.5);
-    position:absolute;
-    inset:0;
-    z-index:1;
-  }
+`;
+const Background = styled.div`
+  background-color:rgba(1, 1, 1, 0.5);
+  opacity:0;
+  position:absolute;
+  inset:0;
+  z-index:1;
 `;
 const CanvasBox = styled.div`
   position:fixed;
@@ -41,21 +41,30 @@ const Message = styled.div`
 `;
 
 const TopSection = () => {
+  const contentRef = useRef(null);
+  const canvasRef = useRef(null);
   const {
-    containerRef,
-    canvasRef,
     setImageSrc,
     setImageType,
     setTotalImages,
-    setOptions,
+    setObjects,
     animationStyles
   } = useContext(ScrollContext);
   const totalImages = 494;
   
-  const messages = useMemo(() => [
+  const object = useMemo(() => [
     // option: [시작 값, 끝 값, { 애니메이션 시작 타이밍, 애니메이션 끝 타이밍 }]
     {
-      text: "재활용이 아닌 새활용",
+      target: "Background",
+      translate_in: [
+        { x: 0, y: 0 }, //시작 값
+        { x: 0, y: 0 }, //끝 값
+        { start: 0, end: 1 } //애니메이션 시작, 끝 타이밍(진행률)
+      ],
+      opacity_in: [0, 1, { start: 0.01, end: 0.1 }]
+    },
+    {
+      target: "Message1",
       translate_in: [
         { x: 0, y: 30 }, //시작 값
         { x: 0, y: 0 }, //끝 값
@@ -70,7 +79,7 @@ const TopSection = () => {
       opacity_out: [1, 0, { start: 0.3, end: 0.35 }],
     },
     {
-      text: "버려진 트럭 방수포에",
+      target: "Message2",
       translate_in: [
         { x: 0, y: 30 },
         { x: 0, y: 0 },
@@ -85,7 +94,7 @@ const TopSection = () => {
       opacity_out: [1, 0, { start: 0.5, end: 0.65 }],
     },
     {
-      text: "새로운 가치를 더하다",
+      target: "Message3",
       translate_in: [
         { x: 0, y: 30 },
         { x: 0, y: 0 },
@@ -99,30 +108,43 @@ const TopSection = () => {
     setImageSrc("/assets/images/top/top-");
     setImageType("jpg");
     setTotalImages(totalImages);
-    setOptions(messages);
-  }, [setImageSrc, setImageType, setTotalImages, setOptions, messages])
+    setObjects(object);
+  }, [setImageSrc, setImageType, setTotalImages, setObjects, object])
 
+  useObserver("top-section", contentRef, canvasRef);
   useCanvas();
   useAnimation();
 
   return (
-    <Container ref={containerRef}>
+    <Container
+      id="top-section"  
+      ref={contentRef}
+    >
+      <Background style={{opacity: animationStyles.Background?.opacity}} />
+
       <CanvasBox>
         <canvas ref={canvasRef} />
       </CanvasBox>
 
       <Message>
-        {messages.map((message, index) => (
-          <p
-            key={index}
-            style={{
-              opacity: animationStyles[index]?.opacity,
-              transform: animationStyles[index]?.transform
-            }}
-          >
-            {message.text}
-          </p>
-        ))}
+        <p
+          style={{
+            opacity: animationStyles.Message1?.opacity,
+            transform: animationStyles.Message1?.transform
+          }}
+        >재활용이 아닌 새활용</p>
+        <p
+          style={{
+            opacity: animationStyles.Message2?.opacity,
+            transform: animationStyles.Message2?.transform
+          }}
+        >버려진 트럭 방수포에</p>
+        <p
+          style={{
+            opacity: animationStyles.Message3?.opacity,
+            transform: animationStyles.Message3?.transform
+          }}
+        >새로운 가치를 더하다</p>
       </Message>
     </Container>
   );
