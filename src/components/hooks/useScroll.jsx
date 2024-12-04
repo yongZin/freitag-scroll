@@ -2,6 +2,31 @@
 import { useContext, useEffect } from "react"
 import { ScrollContext } from "../context/ScrollContext"
 
+export const useObserver = (sectionId, contentRef, canvasRef) => { //현재 활성화 섹션 찾기
+  const { setActiveSection } = useContext(ScrollContext);
+
+  useEffect(() => {
+    const section = document.getElementById(sectionId);
+
+    if(!section) return;
+
+    const observer = new IntersectionObserver(([entry]) => {
+      if(entry.isIntersecting) { //뷰포트에 섹션 진입시 activeSection 변경
+        setActiveSection({
+          id: sectionId,
+          contentRef,
+          canvasRef
+        });
+      }
+    }, { threshold: 0.1 }
+  );
+
+  observer.observe(section);
+
+  return () => observer.disconnect();
+  }, [sectionId, contentRef, canvasRef, setActiveSection]);
+};
+
 export const useAnimation = () => { //스크롤 애니메이션(메시지, 배경)
   const {
     activeSection,

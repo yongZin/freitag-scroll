@@ -4,6 +4,7 @@ import PropTypes from 'prop-types';
 export const ScrollContext = createContext();
 
 export const ScrollProvider = ({ children }) => {
+  const [activeSection, setActiveSection] = useState(null);
   const [imageSrc, setImageSrc] = useState(""); //이미지 소스
   const [imageType, setImageType] = useState(""); //이미지 타입
   const [images, setImages] = useState([]); //canvas에 그려질 이미지
@@ -33,6 +34,7 @@ export const ScrollProvider = ({ children }) => {
   }, [imageSrc, imageType, totalImages]);
 
   const ScrollContextValue = {
+    activeSection, setActiveSection,
     imageSrc, setImageSrc,
     imageType, setImageType,
     images, setImages,
