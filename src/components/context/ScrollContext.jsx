@@ -1,19 +1,16 @@
-import { createContext, useState, useEffect, useRef } from "react";
-// import { useLoadImages } from "../hooks/useScroll";
+import { createContext, useState, useEffect } from "react";
+import PropTypes from 'prop-types';
 
 export const ScrollContext = createContext();
 
 export const ScrollProvider = ({ children }) => {
-  const containerRef = useRef(null);
-  const canvasRef = useRef(null);
-
   const [imageSrc, setImageSrc] = useState(""); //이미지 소스
   const [imageType, setImageType] = useState(""); //이미지 타입
   const [images, setImages] = useState([]); //canvas에 그려질 이미지
   const [totalImages, setTotalImages] = useState(0); //images 수
-  const [options, setOptions] = useState([]); //스크롤 애니메이션 옵션
+  const [objects, setObjects] = useState([]); //스크롤 애니메이션 옵션
   const [animationStyles, setAnimationStyles] = useState( //애니메이션 스타일
-    options.map(() => ({ opacity: 0, transform: "translate(30px, 0)" }))
+    objects.map(() => ({ opacity: 0, transform: "translate(30px, 0)" }))
   );
 
   useEffect(() => {
@@ -36,13 +33,11 @@ export const ScrollProvider = ({ children }) => {
   }, [imageSrc, imageType, totalImages]);
 
   const ScrollContextValue = {
-    containerRef,
-    canvasRef,
     imageSrc, setImageSrc,
     imageType, setImageType,
     images, setImages,
     totalImages, setTotalImages,
-    options, setOptions,
+    objects, setObjects,
     animationStyles, setAnimationStyles
 	};
 
@@ -52,3 +47,7 @@ export const ScrollProvider = ({ children }) => {
     </ScrollContext.Provider>
   )
 }
+
+ScrollProvider.propTypes = {
+  children: PropTypes.node.isRequired
+};
