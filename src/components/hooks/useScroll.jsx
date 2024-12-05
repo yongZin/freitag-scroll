@@ -1,29 +1,57 @@
 //스크롤 관련 커스텀 훅
-import { useContext, useEffect } from "react"
+import { useContext, useEffect, useRef } from "react"
 import { ScrollContext } from "../context/ScrollContext"
 
-export const useObserver = (sectionId, contentRef, canvasRef) => { //현재 활성화 섹션 찾기
+const throttle = (func, limit) => {
+  // 스로틀링 유틸리티 함수(이벤트 호출 빈도 제한)
+  let inThrottle;
+
+  return (...args) => {
+    const context = this;
+
+    if (!inThrottle) {
+      func.apply(context, args);
+
+      inThrottle = true;
+
+      setTimeout(() => {
+        inThrottle = false;
+      }, limit);
+    }
+  }
+};
+
+export const useObserver = (sectionId, contentRef, canvasRef) => {
   const { setActiveSection } = useContext(ScrollContext);
+  const lastScrollTop = useRef(0);
 
   useEffect(() => {
-    const section = document.getElementById(sectionId);
+    const handleScroll = throttle(() => {
+      const scrollTop = window.pageYOffset || document.documentElement.scrollTop; //현재 스크롤 위치(페이지 전체)
+      const section = document.getElementById(sectionId);
+      
+      if (!section) return;
 
-    if(!section) return;
+      const sectionTop = section.offsetTop;
+      const sectionBottom = sectionTop + section.offsetHeight;
 
-    const observer = new IntersectionObserver(([entry]) => {
-      if(entry.isIntersecting) { //뷰포트에 섹션 진입시 activeSection 변경
+      if (scrollTop >= sectionTop && scrollTop < sectionBottom) {
+        //특정 섹션내에서 스크롤할 경우(현재 스크롤 위치가 특정 섹션내에 있는지)
         setActiveSection({
           id: sectionId,
           contentRef,
           canvasRef
         });
       }
-    }, { threshold: 0.1 }
-  );
 
-  observer.observe(section);
+      lastScrollTop.current = scrollTop; //현재 스크롤 위치 저장
+    }, 100); // 100ms마다 실행(호출빈도 제한)
 
-  return () => observer.disconnect();
+    window.addEventListener('scroll', handleScroll);
+
+    handleScroll();
+
+    return () => window.removeEventListener('scroll', handleScroll);
   }, [sectionId, contentRef, canvasRef, setActiveSection]);
 };
 

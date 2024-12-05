@@ -21,10 +21,10 @@ const Container = styled.main`
 const ScrollContainer = () => {
 	return (
 		<Container>
-			<TopSection id="top-section"  />
-			<DetailSection id="detail-section"  />
+			<TopSection id="top-section" />
+			<DetailSection id="detail-section" />
 			<CitySection id="city-section"  />
-			<ProductSection id="product-section"  />
+			<ProductSection id="product-section" />
 		</Container>
 	)
 }
