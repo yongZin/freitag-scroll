@@ -1,5 +1,5 @@
 //스크롤 관련 커스텀 훅
-import { useContext, useEffect, useRef } from "react"
+import  { useContext, useEffect } from "react"
 import { ScrollContext } from "../context/ScrollContext"
 
 const throttle = (func, limit) => {
@@ -21,56 +21,107 @@ const throttle = (func, limit) => {
   }
 };
 
-export const useObserver = (sectionId, contentRef, canvasRef) => {
-  const { setActiveSection } = useContext(ScrollContext);
-  const lastScrollTop = useRef(0);
+export const useSections = (containerRef) => { //섹션 정보 가져오기
+  const { setSections } = useContext(ScrollContext);
+
+  useEffect(() => {
+    if(!containerRef.current) return; //containerRef가 없다면 리턴
+
+    const children = Array.from(containerRef.current.children); //섹션 정보 가져오기(콘텐츠)
+
+    const sectionsData = children.reduce((acc, child) => {
+      const id = child.id;
+
+      if(id) {
+        acc[id] = {
+          id,
+          active: false,
+          contentRef: { current: child },
+          canvasRef: { current: child.querySelector("canvas") || null },
+          animationStyles: {},
+        };
+      }
+
+      return acc;
+    }, {});
+
+    setSections(sectionsData);
+  }, [containerRef, setSections]);
+};
+
+export const useObserver = (containerRef) => { //활성화된 섹션 찾기
+  const { setSections } = useContext(ScrollContext);
 
   useEffect(() => {
     const handleScroll = throttle(() => {
-      const scrollTop = window.pageYOffset || document.documentElement.scrollTop; //현재 스크롤 위치(페이지 전체)
-      const section = document.getElementById(sectionId);
+      if(!containerRef.current) return; //containerRef가 없다면 리턴
+
+      const scrollTop = window.pageYOffset || document.documentElement.scrollTop; //현재 스크롤 위치
+
+      const children = Array.from(containerRef.current.children); //섹션 정보 가져오기(콘텐츠)
+
+      const updateSections = children.reduce((acc, child) => {
+        const id = child.id;
+
+        if(!id) return acc; //id가 없다면 리턴
+
+        const sectionTop = child.offsetTop; //섹션의 스크롤 시작 값
+        const sectionBottom = sectionTop + child.offsetHeight; //섹션의 스크롤 끝 값
+        
+        const isActive = scrollTop >= sectionTop && scrollTop < sectionBottom; //현재 위치가 sectionTop ~ sectionBottom 범위면 true
+
+        acc[id] = { active: isActive };
+        
+        return acc;
+      }, {});
+
+      setSections((prevSections) => {
+        // 새로운 활성화된 섹션 찾기
+        const activeIds = Object.keys(updateSections).filter(id => updateSections[id].active);
+
+        // 모든 섹션의 active 상태 업데이트
+        const updatedSections = Object.keys(prevSections).reduce((acc, id) => {
+          acc[id] = {
+            ...prevSections[id],
+            // 현재 섹션이 활성화된 섹션 중 하나인지 확인
+            active: activeIds.includes(id)
+          };
+          return acc;
+        }, {});
+
+        return updatedSections;
+      });
       
-      if (!section) return;
+    }, 100);
 
-      const sectionTop = section.offsetTop;
-      const sectionBottom = sectionTop + section.offsetHeight;
+    handleScroll(); //최초 실핼
+    window.addEventListener("scroll", handleScroll);
 
-      if (scrollTop >= sectionTop && scrollTop < sectionBottom) {
-        //특정 섹션내에서 스크롤할 경우(현재 스크롤 위치가 특정 섹션내에 있는지)
-        setActiveSection({
-          id: sectionId,
-          contentRef,
-          canvasRef
-        });
-      }
-
-      lastScrollTop.current = scrollTop; //현재 스크롤 위치 저장
-    }, 100); // 100ms마다 실행(호출빈도 제한)
-
-    window.addEventListener('scroll', handleScroll);
-
-    handleScroll();
-
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, [sectionId, contentRef, canvasRef, setActiveSection]);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, [containerRef, setSections]);
 };
 
 export const useAnimation = () => { //스크롤 애니메이션(메시지, 배경)
-  const {
-    activeSection,
-    objects,
-    setAnimationStyles
-  } = useContext(ScrollContext);
+  const { sections, objects, setAnimationStyles } = useContext(ScrollContext);
 
   useEffect(() => {
-    if(!activeSection || !activeSection.contentRef) return;
-
-    const content = activeSection.contentRef.current;
-
+    const activeSectionId = Object.keys(sections).find(id => sections[id].active); //활성화 섹션 찾기
+    
+    if (!activeSectionId || !sections[activeSectionId].contentRef.current) return; //활성화 섹션 및 ref가 없다면 리턴
+    
+    const content = sections[activeSectionId].contentRef.current;
+    
     const handleScroll = () => {
-      const scrollY = window.scrollY; //현재 스크롤 위치
-      const maxScroll = content.scrollHeight - window.innerHeight; //최대 스크롤 가능 범위
-      const scrollProgress = Math.min(scrollY / maxScroll, 1); //진행률
+      const scrollTop = window.pageYOffset || document.documentElement.scrollTop; //현재 스크롤 위치
+      const sectionTop = content.offsetTop; //섹션 시작 위치
+      const sectionHeight = content.scrollHeight; //섹션 전체 높이
+      const sectionBottom = sectionTop + sectionHeight; //섹션 끝 위치
+      
+      const scrollProgress = Math.max(0, Math.min(
+        //뷰포트 기준 섹션이 사라지면 진행률 100%
+        (scrollTop - sectionTop) / (sectionBottom - sectionTop), 
+        1
+      ));
 
       const newStyles = objects.reduce((acc, object) => {
         const translateIn = object.translate_in; //translate 시작 값
@@ -150,47 +201,70 @@ export const useAnimation = () => { //스크롤 애니메이션(메시지, 배�
         return acc;
       }, {});
       
-      setAnimationStyles(newStyles);
+      // setAnimationStyles(newStyles);
+      setAnimationStyles(prevStyles => ({
+        ...prevStyles,
+        [activeSectionId]: newStyles
+      }));
       
     };
 
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
-  }, [activeSection, objects, setAnimationStyles]);
+  }, [sections, objects, setAnimationStyles]);
 }
 
 export const useCanvas = () => {
-  const {
-    activeSection,
-    images,
-    totalImages
-  } = useContext(ScrollContext);
+  const { sections, images, totalImages } = useContext(ScrollContext);
 
   useEffect(() => {
-    if (!activeSection || !activeSection.canvasRef || !activeSection.contentRef) return;
+    if (!Object.keys(sections).length) return;
+
+    const activeSection = Object.values(sections).find(section => section.active); //활성화 섹션 찾기
+
+    if (!activeSection || !activeSection.canvasRef.current || !activeSection.contentRef.current) return; //활성화 섹션 및 ref가 없다면 리턴
 
     const content = activeSection.contentRef.current;
     const canvas = activeSection.canvasRef.current;
     const ctx = canvas.getContext("2d");
 
     const calcScrollData = () => {
-      const scrollY = window.scrollY; //현재 스크롤 위
-      const maxScroll = content.scrollHeight - window.innerHeight;//최대 스크롤 가능 범위
-      const scrollProgress = Math.min(scrollY / maxScroll, 1); //진행률
-      const imageIndex = Math.floor(scrollProgress * (totalImages - 1)); //현재 보이는 이미지 순서
+      const scrollY = window.scrollY; //현재 스크롤 위치
+      const sectionTop = content.offsetTop - 10 //섹션 시작 위치
+      const sectionHeight = content.scrollHeight //섹션 높이
+      const sectionBottom = sectionTop + sectionHeight - 10; //섹션 끝 위치
+
+      if (scrollY < sectionTop || scrollY >= sectionBottom) {
+        return { scrollProgress: 0, imageIndex: 0 }; // 섹션을 벗어나면 기본값 반환
+      }
+
+      const maxScroll = sectionHeight - window.innerHeight; //섹션의 최대 스크롤 가능 범위
+      const sectionScrollY = Math.max(0, Math.min(scrollY - sectionTop, maxScroll)); //섹션 내의 현재 스크롤 위치
+      const scrollProgress = Math.min(sectionScrollY / maxScroll, 1); //섹션 내 현재 진행률
+
+      const imageIndex = Math.floor(scrollProgress * (totalImages - 1)); //진행률에 대한 이미지 인덱스
 
       return { scrollProgress, imageIndex };
     };
-
+    
     const renderImage = (imageIndex) => {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       ctx.drawImage(images[imageIndex], 0, 0, canvas.width, canvas.height);
+      // console.log(images[imageIndex]);
+      
     };
 
     const resizeCanvas = () => {
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight;
+      const isDetailSection = activeSection && activeSection.id === 'detail-section';
 
+      if(isDetailSection) {
+        canvas.width = window.innerWidth < 823 ? window.innerWidth : 823;
+        canvas.height = window.innerHeight < 558 ? window.innerWidth : 558; 
+      } else{
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+      }
+      
       if(images.length > 0) {
         const { imageIndex } = calcScrollData();
 
@@ -221,5 +295,5 @@ export const useCanvas = () => {
       window.removeEventListener("resize", resizeCanvas);
       window.removeEventListener("scroll", handleScroll);
     };
-  }, [activeSection, images, totalImages]);
+  }, [sections, images, totalImages]);
 }
