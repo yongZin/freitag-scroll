@@ -4,6 +4,7 @@ import PropTypes from 'prop-types';
 export const ScrollContext = createContext();
 
 export const ScrollProvider = ({ children }) => {
+  const [test, setTest] = useState([]);
   const [sections, setSections] = useState({}); //섹션별 스크롤 시작, 끝 값
   const [activeSection, setActiveSection] = useState(null);
   const [imageSrc, setImageSrc] = useState(""); //이미지 소스
@@ -34,12 +35,8 @@ export const ScrollProvider = ({ children }) => {
 
   }, [imageSrc, imageType, totalImages]);
 
-  // useEffect(() => {
-  //   console.log(sections);
-    
-  // }, [sections]);
-
   const ScrollContextValue = {
+    test, setTest,
     sections, setSections,
     activeSection, setActiveSection,
     imageSrc, setImageSrc,

@@ -1,186 +1,163 @@
 //상단 컨텐츠
 import styled from "styled-components";
-import { useRef, useEffect, useContext, useMemo } from "react";
-import { ScrollContext } from "../context/ScrollContext";
+import { useRef, useEffect, useContext } from "react";
+import { SectionContext } from "../context/SectionContext";
+import { useMemo } from "react";
 
+const CanvasBox = styled.div`
+  width:100%;
+  height:100vh;
+  position:absolute;
+  top:0;
+  left:0;
+`;
 const Background = styled.div`
   background-color:rgba(1, 1, 1, 0.5);
   opacity:0;
+  position:absolute;
   inset:0;
   z-index:1;
 `;
-const CanvasBox = styled.div`
-  position:relative;
-  inset:0;
-  z-index:-1;
-  canvas{
-    width:100%;
-    height:100vh;
-    object-fit:cover;
-    position:absolute;
-    top:0;
-    left:0;
-  }
-`;
-const Messages = styled.div`
-  p{
+const Messages = styled.ul`
+  width:100%;
+  text-align:center;
+  position:absolute;
+  top:50%;
+  transform:translateY(-50%);
+  z-index:2;
+  li{
     width:100%;
     font-size:70px;
-    text-align:center;
-    color:#fff;
-    position:fixed;
-    top:50%;
-    transform:translateY(-50%);
-    z-index:3;
     font-family:var(--f-ebold);;
+    color:#fff;
+    position:absolute;
+    top:0;
+    z-index:3;
     opacity:0;
   }
 `;
 const Content = styled.section`
   height:400vh;
-  opacity:0;
   &.on{
-    opacity:1;
-    ${CanvasBox}, ${Background} {
+    >div{
       position:fixed;
+      inset:0;
     }
-    /* ${Messages} {
-      p{
-        position:fixed;
-      }
-    } */
   }
 `;
 
 const TopSection = () => {
-  const contentRef = useRef(null);
+	const contentRef = useRef(null);
   const canvasRef = useRef(null);
-  const {
-    imageSrc,
-    setImageSrc,
-    setImageType,
-    setTotalImages,
-    setObjects,
-    sections,
-    animationStyles
-  } = useContext(ScrollContext);
-  const totalImages = 494;
-  
-  const object = useMemo(() => [
-    // option: [시작 값, 끝 값, { 애니메이션 시작 타이밍, 애니메이션 끝 타이밍 }]
-    {
-      target: "Background",
-      translate_in: [
-        { x: 0, y: 0 }, //시작 값
-        { x: 0, y: 0 }, //끝 값
-        { start: 0, end: 1 } //애니메이션 시작, 끝 타이밍(진행률)
-      ],
-      opacity_in: [0, 1, { start: 0.01, end: 0.1 }]
-    },
-    {
-      target: "Finish",
-      translate_in: [
-        { x: 0, y: 0 }, //시작 값
-        { x: 0, y: 0 }, //끝 값
-        { start: 0, end: 1 } //애니메이션 시작, 끝 타이밍(진행률)
-      ],
-      opacity_in: [1, 1, { start: 0, end: 0 }],
-      opacity_out: [1, 0, { start: 0.88, end: 0.95 }]
-    },
-    {
-      target: "Message1",
-      translate_in: [
-        { x: 0, y: 30 }, //시작 값
-        { x: 0, y: 0 }, //끝 값
-        { start: 0.1, end: 0.2 } //애니메이션 시작, 끝 타이밍(진행률)
-      ],
-      translate_out: [
-        { x: 0, y: 0 },
-        { x: 0, y: -30 },
-        { start: 0.25, end: 0.35 }
-      ],
-      opacity_in: [0, 1, { start: 0.1, end: 0.15 }],
-      opacity_out: [1, 0, { start: 0.3, end: 0.35 }],
-    },
-    {
-      target: "Message2",
-      translate_in: [
-        { x: 0, y: 30 },
-        { x: 0, y: 0 },
-        { start: 0.35, end: 0.45 }
-      ],
-      translate_out: [
-        { x: 0, y: 0 },
-        { x: 0, y: -30 },
-        { start: 0.55, end: 0.65 }
-      ],
-      opacity_in: [0, 1, { start: 0.35, end: 0.4 }],
-      opacity_out: [1, 0, { start: 0.5, end: 0.65 }],
-    },
-    {
-      target: "Message3",
-      translate_in: [
-        { x: 0, y: 30 },
-        { x: 0, y: 0 },
-        { start: 0.65, end: 0.75 }
-      ],
-      opacity_in: [0, 1, { start: 0.65, end: 0.7 }],
-    },
-  ], []);
-  
-  useEffect(() => {
-    const isTopSectionActive = sections["top-section"] && sections["top-section"].active;
-    
-    if(
-      isTopSectionActive &&
-      imageSrc !== "/assets/images/top/top-"
-    ) {
-      setImageSrc("/assets/images/top/top-");
-      setImageType("jpg");
-      setTotalImages(totalImages);
-      setObjects(object);
-    }
-  }, [sections, imageSrc, setImageSrc, setImageType, setTotalImages, setObjects, object])
+  const backgroundRef = useRef(null);
+  const messageARef = useRef(null);
+  const messageBRef = useRef(null);
+  const messageCRef = useRef(null);
+  const { setSectionConfig, activeSection } = useContext(SectionContext);
 
-  return (
+  const animationConfig = useMemo(() => {
+    return {
+      id: "top-section",
+      content: {
+        target: contentRef,
+        values: {
+          opacity: {
+            in: [1, 1, { start: 0, end: 0 }],
+            out: [1, 0, { start: 0.88, end: 1 }],
+          }
+        }
+      },
+      background: {
+        target: backgroundRef,
+        values: {
+          opacity: {
+            in: [0, 1, { start: 0.01, end: 0.1 }],
+            out: [1, 1, { start: 1, end: 1 }],
+          }
+        }
+      },
+      canvas: {
+        target: canvasRef,
+        values: {
+          imageSrc: "/assets/images/top/top-",
+          imageType: "jpg",
+          imageCount: 494,
+          images: [],
+          videoImage: [1, 494, { start: 0, end: 0.99 }]
+        }
+      },
+      messageA: {
+        target: messageARef,
+        values: {
+          translate: {
+            in: [30, 0, { start: 0.1, end: 0.2 }],
+            out: [0, -30, { start: 0.25, end: 0.35 }],
+          },
+          opacity: {
+            in: [0, 1, { start: 0.1, end: 0.15 }],
+            out: [1, 0, { start: 0.3, end: 0.35 }],
+          }
+        }
+      },
+      messageB: {
+        target: messageBRef,
+        values: {
+          translate: {
+            in: [30, 0, { start: 0.35, end: 0.45 }],
+            out: [0, -30, { start: 0.55, end: 0.65 }],
+          },
+          opacity: {
+            in: [0, 1, { start: 0.35, end: 0.4 }],
+            out: [1, 0, { start: 0.5, end: 0.65 }],
+          }
+        }
+      },
+      messageC: {
+        target: messageCRef,
+        values: {
+          translate: {
+            in: [30, 0, { start: 0.65, end: 0.75 }],
+            out: [0, 0, { start: 1, end: 1 }],
+          },
+          opacity: {
+            in: [0, 1, { start: 0.65, end: 0.7 }],
+            out: [1, 1, { start: 1, end: 1 }],
+          }
+        }
+      },
+    }
+  }, []);
+
+  useEffect(() => { //sectionConfig에 정보 저장하기(이전 정보와 함께 저장)
+    setSectionConfig((prevConfig) => {
+			const addInfo = prevConfig.some(item => item.id === animationConfig.id);
+
+			return addInfo ? prevConfig : [...prevConfig, animationConfig];
+
+		})
+  }, [animationConfig, setSectionConfig]);
+ 
+	return (
     <Content
       id="top-section"  
       ref={contentRef}
-      style={{opacity: animationStyles["top-section"]?.Finish?.opacity}}
-      className={
-        sections["top-section"] && (
-          sections["top-section"].active ? "on" : ""
-        )
-      }
+      className={activeSection === "top-section" && "on"}
     >
-      <Background style={{opacity: animationStyles["top-section"]?.Background?.opacity}} />
+      <div>
+        <Background ref={backgroundRef} />
 
-      <CanvasBox>
-        <canvas ref={canvasRef} />
-      </CanvasBox>
+        <CanvasBox>
+          <canvas ref={canvasRef} />
+        </CanvasBox>
 
-      <Messages>
-        <p
-          style={{
-            opacity: animationStyles["top-section"]?.Message1?.opacity,
-            transform: animationStyles["top-section"]?.Message1?.transform
-          }}
-        >재활용이 아닌 새활용</p>
-        <p
-          style={{
-            opacity: animationStyles["top-section"]?.Message2?.opacity,
-            transform: animationStyles["top-section"]?.Message2?.transform
-          }}
-        >버려진 트럭 방수포에</p>
-        <p
-          style={{
-            opacity: animationStyles["top-section"]?.Message3?.opacity,
-            transform: animationStyles["top-section"]?.Message3?.transform
-          }}
-        >새로운 가치를 더하다</p>
-      </Messages>
+        <Messages>
+          <li ref={messageARef}>재활용이 아닌 새활용</li>
+          <li ref={messageBRef}>버려진 트럭 방수포에</li>
+          <li ref={messageCRef}>새로운 가치를 더하다</li>
+        </Messages>
+      </div>
     </Content>
   );
-};
+}
 
 export default TopSection;

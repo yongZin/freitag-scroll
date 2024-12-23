@@ -201,7 +201,6 @@ export const useAnimation = () => { //스크롤 애니메이션(메시지, 배�
         return acc;
       }, {});
       
-      // setAnimationStyles(newStyles);
       setAnimationStyles(prevStyles => ({
         ...prevStyles,
         [activeSectionId]: newStyles
@@ -230,9 +229,9 @@ export const useCanvas = () => {
 
     const calcScrollData = () => {
       const scrollY = window.scrollY; //현재 스크롤 위치
-      const sectionTop = content.offsetTop - 10 //섹션 시작 위치
+      const sectionTop = content.offsetTop //섹션 시작 위치
       const sectionHeight = content.scrollHeight //섹션 높이
-      const sectionBottom = sectionTop + sectionHeight - 10; //섹션 끝 위치
+      const sectionBottom = sectionTop + sectionHeight; //섹션 끝 위치
 
       if (scrollY < sectionTop || scrollY >= sectionBottom) {
         return { scrollProgress: 0, imageIndex: 0 }; // 섹션을 벗어나면 기본값 반환
@@ -250,7 +249,6 @@ export const useCanvas = () => {
     const renderImage = (imageIndex) => {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       ctx.drawImage(images[imageIndex], 0, 0, canvas.width, canvas.height);
-      // console.log(images[imageIndex]);
       
     };
 
@@ -261,7 +259,7 @@ export const useCanvas = () => {
         canvas.width = window.innerWidth < 823 ? window.innerWidth : 823;
         canvas.height = window.innerHeight < 558 ? window.innerWidth : 558; 
       } else{
-        canvas.width = window.innerWidth;
+        canvas.width = window.innerWidth - 15; //스크롤바 크기 제외
         canvas.height = window.innerHeight;
       }
       
@@ -274,22 +272,22 @@ export const useCanvas = () => {
       }
     };
 
-    const handleScroll = () => {
+    const handleScroll = throttle(() => {
       if (!content || images.length === 0) return;
 
       const { imageIndex } = calcScrollData();
 
-      if (images[imageIndex] && images[imageIndex].complete) {
-        renderImage(imageIndex);
-      }
-    };
+      requestAnimationFrame(() => {
+        if (images[imageIndex] && images[imageIndex].complete) {
+          renderImage(imageIndex);
+        }
+      })
+    }, 50);
 
     window.addEventListener("resize", resizeCanvas);
     window.addEventListener("scroll", handleScroll);
 
-    setTimeout(() => {
-      resizeCanvas();
-    }, 100)
+    setTimeout(resizeCanvas, 100); //초기 렌더링
 
     return () => {
       window.removeEventListener("resize", resizeCanvas);
@@ -297,3 +295,4 @@ export const useCanvas = () => {
     };
   }, [sections, images, totalImages]);
 }
+
