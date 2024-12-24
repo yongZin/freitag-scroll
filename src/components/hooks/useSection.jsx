@@ -119,6 +119,8 @@ export const useAnimation = () => {
 	const { activeSection, sectionConfig } = useContext(SectionContext);
 	
 	useEffect(() => {
+		let ticking = false;
+
 		if(!activeSection && sectionConfig === 0) return; //활성화 섹션 정보가 없다면 리턴
 
 		const handleCanvas = ( ///Canvas 이미지 시퀀스 애니메이션
@@ -131,9 +133,21 @@ export const useAnimation = () => {
 			const ctx = canvasElement.getContext("2d");
 
 			//Canvas 크기 설정
-			const canvasParent = canvasElement.parentElement.getBoundingClientRect();
+			const canvasParent = canvasElement.parentElement.getBoundingClientRect(); //부모요소 크기 참조(스크롤바 제외된 크기)
 			canvasElement.width = canvasParent.width;
 			canvasElement.height = canvasParent.height;
+
+			if(activeSection === "detail-section") {
+				//detail-section Canvas 최대 사이즈 지정
+
+				if(canvasParent.width >= 840) {
+					canvasElement.width = 822;
+					canvasElement.height = 558;
+				} else{
+					canvasElement.width = canvasParent.width - 10;
+					canvasElement.height = canvasElement.width / 1.4735;
+				}
+			}
 
 			if(sectionScrollRatio >= animStart && sectionScrollRatio <= animEnd) {
 				const normalizedRatio = (sectionScrollRatio - animStart) / (animEnd - animStart);
@@ -141,7 +155,12 @@ export const useAnimation = () => {
 				const img = images[imageIndex - 1];
 	
 				if(img && img.complete && img.naturalWidth !== 0) {
-					ctx.drawImage(img, 0, 0, canvasElement.width, canvasElement.height);
+					ctx.drawImage(
+						img,
+						0, 0,
+						canvasElement.width,
+						canvasElement.height
+					);
 				}
 			}
 		};
@@ -207,6 +226,7 @@ export const useAnimation = () => {
 			const currentSectionConfig = sectionConfig.find( //활성화 섹션 찾기
 				(section) => section.id === activeSection
 			);
+			
 
 			if(currentSectionConfig) {
 				const { sectionHeight, sectionTop } = currentSectionConfig; //섹션의 높이 및 스크롤 시작, 끝 값
@@ -250,13 +270,26 @@ export const useAnimation = () => {
 			}
 		}
 
-		window.addEventListener('scroll', handleScroll);
-		window.addEventListener("resize", handleScroll);
-    handleScroll();
+		const requestHandleScroll = () => {
+			if (!ticking) {
+				requestAnimationFrame(() => {
+					handleScroll();
 
+					ticking = false;
+				});
+
+				ticking = true;
+			}
+		};
+
+		handleScroll(); //최초 실행
+
+		window.addEventListener('scroll', requestHandleScroll);
+		window.addEventListener("resize", requestHandleScroll);
+		
 		return () => {
-			window.removeEventListener('scroll', handleScroll);
-			window.removeEventListener('resize', handleScroll);
+			window.removeEventListener('scroll', requestHandleScroll);
+			window.removeEventListener('resize', requestHandleScroll);
 		}
 	}, [activeSection, sectionConfig]);
 };
