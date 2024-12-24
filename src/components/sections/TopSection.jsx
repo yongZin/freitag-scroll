@@ -10,6 +10,11 @@ const CanvasBox = styled.div`
   position:absolute;
   top:0;
   left:0;
+  canvas{
+    width:100%;
+    height:100vh;
+    object-fit:cover;
+  }
 `;
 const Background = styled.div`
   background-color:rgba(1, 1, 1, 0.5);
@@ -27,6 +32,7 @@ const Messages = styled.ul`
   z-index:2;
   li{
     width:100%;
+    padding:0 20px;
     font-size:70px;
     font-family:var(--f-ebold);;
     color:#fff;

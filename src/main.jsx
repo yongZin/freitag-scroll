@@ -2,7 +2,6 @@ import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
 import { ThemeProvider } from 'styled-components';
-import { ScrollProvider } from "./components/context/ScrollContext.jsx";
 import { SectionProvider } from "./components/context/SectionContext.jsx";
 import GlobalStyle from "./style/GlobalStyle.jsx";
 import Theme from "./style/Theme.jsx";
@@ -13,12 +12,10 @@ createRoot(document.getElementById("root")).render(
   <StrictMode>
     <BrowserRouter>
       <SectionProvider>
-        <ScrollProvider>
-          <ThemeProvider theme={Theme}>
-            <App />
-            <GlobalStyle />
-          </ThemeProvider>
-        </ScrollProvider>
+        <ThemeProvider theme={Theme}>
+          <App />
+          <GlobalStyle />
+        </ThemeProvider>
       </SectionProvider>
     </BrowserRouter>
   </StrictMode>,
