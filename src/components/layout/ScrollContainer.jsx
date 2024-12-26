@@ -18,7 +18,8 @@ const Container = styled.main`
 		width:100%;
 		min-height:100vh;
 		overflow:hidden;
-		position:relative;
+		position:sticky;
+		top:0;
 		z-index:1;
 	}
 `;
