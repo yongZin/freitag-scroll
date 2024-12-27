@@ -12,6 +12,7 @@ import { SectionContext } from "../context/SectionContext";
 
 const Container = styled.main`
 	width:100%;
+	padding-bottom:50vh;
 	background-color:#fff;
 	position:relative;
 	section{
