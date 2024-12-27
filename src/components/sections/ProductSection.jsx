@@ -86,16 +86,12 @@ const ProductSection = () => {
 	const productTopRef = useRef(null);
 	const productBottomRef = useRef(null);
   const { setSectionConfig, activeSection } = useContext(SectionContext);
-  // const productNumbers = Array.from({ length: 20 }, (_, i) => i + 1); //이미지 넘버
-  // const getImagePath = (number) => `/assets/images/products/product-${number}.png`; //이미지 링크
-
   const productImages = Array.from({ length: 20 }, (_, i) => {
     const number = i + 1;
 
     return {
       number,
-      // path: new URL(`/assets/images/products/product-${number}.png`, import.meta.url).href
-      path: `/assets/images/products/product-${number}.png`
+      path: `public/assets/images/products/product-${number}.png`
     }
   });
 
