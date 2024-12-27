@@ -7,6 +7,7 @@ export const SectionProvider = ({ children }) => {
   const [sectionConfig, setSectionConfig] = useState([]);
   const [activeSection, setActiveSection] = useState("");
 
+
   const SectionContextValue = {
     sectionConfig, setSectionConfig,
     activeSection, setActiveSection
