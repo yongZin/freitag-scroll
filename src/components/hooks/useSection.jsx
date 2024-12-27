@@ -263,7 +263,9 @@ export const useAnimation = () => {
                 sectionScrollRatio
               );
 
-              element.style.transform = `translateY(${translate}px)`;
+							const axis = config.values.translateX || "Y"; //X축 이동이 필요한 경우
+							
+							element.style.transform = `translate${axis}(${translate}px)`;
             }
 					}
 				});
