@@ -106,7 +106,7 @@ const CitySection = () => {
 		})
   }, [animationConfig, setSectionConfig]);
 
-  useEffect(() => {
+  useEffect(() => { //콘텐츠 활성화시 동영상 재생
     const videoElement = videoRef.current;
 
     if(videoElement) {
