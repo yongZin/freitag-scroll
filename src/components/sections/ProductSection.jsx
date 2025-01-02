@@ -2,7 +2,7 @@
 import styled from "styled-components";
 import { useRef, useEffect, useContext } from "react";
 import { SectionContext } from "../context/SectionContext";
-import img from "/assets/images/products/product-1.png";
+import img from "../../../public/assets/images/products/product-1.png";
 
 const RowBox = styled.div`
   width:100%;
