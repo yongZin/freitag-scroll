@@ -1,6 +1,5 @@
-import { createContext, useState } from "react";
+import { createContext, useState, useEffect } from "react";
 import PropTypes from 'prop-types';
-import { useEffect } from "react";
 
 export const SectionContext = createContext();
 
@@ -9,8 +8,9 @@ export const SectionProvider = ({ children }) => {
   const [activeSection, setActiveSection] = useState("");
 
   useEffect(() => {
-    console.log(sectionConfig);
-    
+    if (!sectionConfig) {
+      window.scrollTo(0, 0);
+    }
   }, [sectionConfig]);
 
   const SectionContextValue = {
