@@ -8,9 +8,18 @@ export const SectionProvider = ({ children }) => {
   const [activeSection, setActiveSection] = useState("");
 
   useEffect(() => {
-    if (!sectionConfig) {
+    // if (!sectionConfig) {
+    //   window.scrollTo(0, 0);
+    // }
+    const handleBeforeUnload = () => {
       window.scrollTo(0, 0);
     }
+
+    window.addEventListener("beforeunload", handleBeforeUnload);
+
+    return () => {
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+    };
   }, [sectionConfig]);
 
   const SectionContextValue = {
