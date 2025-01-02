@@ -58,7 +58,11 @@ const CitySection = () => {
 	const backgroundRef = useRef(null);
 	const messageRef = useRef(null);
 	const videoRef = useRef(null);
-  const { setSectionConfig, activeSection } = useContext(SectionContext);
+  const {
+    setSectionConfig,
+    activeSection,
+    isLoaded
+  } = useContext(SectionContext);
 
   const animationConfig = useMemo(() => {
     return {
@@ -124,22 +128,24 @@ const CitySection = () => {
       ref={contentRef}
       className={activeSection === "city-section" && "on"}
     >
-      <div>
-        <Background ref={backgroundRef}></Background>
+      {isLoaded &&
+        <div>
+          <Background ref={backgroundRef}></Background>
 
-        <VideoBox>
-          <video
-            ref={videoRef}
-            muted playsInline loop
-          >
-            <source src="/assets/videos/city.mp4" />
-          </video>
-        </VideoBox>
+          <VideoBox>
+            <video
+              ref={videoRef}
+              muted playsInline loop
+            >
+              <source src="/assets/videos/city.mp4" />
+            </video>
+          </VideoBox>
 
-        <MessageBox>
-          <p ref={messageRef}>실용적이고 도시적인 감각</p>
-        </MessageBox>
-      </div>
+          <MessageBox>
+            <p ref={messageRef}>실용적이고 도시적인 감각</p>
+          </MessageBox>
+        </div>
+      }
     </Content>
   );
 }

@@ -42,10 +42,10 @@ const ScrollContainer = () => {
 
 	return (
 		<Container ref={containerRef}>
-			<TopSection id="top-section" />
-			<DetailSection id="detail-section" />
-			<CitySection id="city-section"  />
-			<ProductSection id="product-section" />
+			<TopSection />
+			<DetailSection />
+			<CitySection />
+			<ProductSection />
 		</Container>
 	)
 }

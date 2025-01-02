@@ -116,12 +116,13 @@ export const useActive = () => { //활성화 섹션 찾기
 };
 
 export const useAnimation = () => {
-	const { activeSection, sectionConfig } = useContext(SectionContext);
+	const { activeSection, sectionConfig, isLoaded } = useContext(SectionContext);
 	
 	useEffect(() => {
 		let ticking = false;
 
-		if(!activeSection && sectionConfig === 0) return; //활성화 섹션 정보가 없다면 리턴
+		//활성화 섹션 정보가 없거나 로딩중이라면 리턴
+		if(!activeSection && sectionConfig === 0 && !isLoaded) return;
 
 		const handleCanvas = ( ///Canvas 이미지 시퀀스 애니메이션
 			videoImageConfig,
@@ -276,7 +277,7 @@ export const useAnimation = () => {
 			if (!ticking) {
 				requestAnimationFrame(() => {
 					handleScroll();
-
+					
 					ticking = false;
 				});
 
@@ -293,5 +294,5 @@ export const useAnimation = () => {
 			window.removeEventListener('scroll', requestHandleScroll);
 			window.removeEventListener('resize', requestHandleScroll);
 		}
-	}, [activeSection, sectionConfig]);
+	}, [activeSection, sectionConfig, isLoaded]);
 };

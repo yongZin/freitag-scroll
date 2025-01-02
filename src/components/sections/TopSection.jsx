@@ -59,7 +59,11 @@ const TopSection = () => {
   const messageARef = useRef(null);
   const messageBRef = useRef(null);
   const messageCRef = useRef(null);
-  const { setSectionConfig, activeSection } = useContext(SectionContext);
+  const {
+    setSectionConfig,
+    activeSection,
+    isLoaded
+  } = useContext(SectionContext);
 
   const animationConfig = useMemo(() => {
     return {
@@ -149,19 +153,21 @@ const TopSection = () => {
       ref={contentRef}
       className={activeSection === "top-section" && "on"}
     >
-      <div>
-        <Background ref={backgroundRef} />
+      {isLoaded &&
+        <div>
+          <Background ref={backgroundRef} />
 
-        <CanvasBox>
-          <canvas ref={canvasRef} />
-        </CanvasBox>
+          <CanvasBox>
+            <canvas ref={canvasRef} />
+          </CanvasBox>
 
-        <Messages>
-          <li ref={messageARef}>재활용이 아닌 새활용</li>
-          <li ref={messageBRef}>버려진 트럭 방수포에</li>
-          <li ref={messageCRef}>새로운 가치를 더하다</li>
-        </Messages>
-      </div>
+          <Messages>
+            <li ref={messageARef}>재활용이 아닌 새활용</li>
+            <li ref={messageBRef}>버려진 트럭 방수포에</li>
+            <li ref={messageCRef}>새로운 가치를 더하다</li>
+          </Messages>
+        </div>
+      }
     </Content>
   );
 }

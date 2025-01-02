@@ -124,7 +124,11 @@ const Content = styled.section`
 `;
 
 const DetailSection = () => {
-  const { setSectionConfig, activeSection } = useContext(SectionContext);
+  const {
+    setSectionConfig,
+    activeSection,
+    isLoaded
+  } = useContext(SectionContext);
 	const contentRef = useRef(null);
   const canvasRef = useRef(null);
   const materiaARef = useRef(null);
@@ -266,32 +270,34 @@ const DetailSection = () => {
 			ref={contentRef}
       className={activeSection === "detail-section" && "on"}
 		>
-      <div>
-        <CanvasBox>
-          <canvas ref={canvasRef} />
-        </CanvasBox>
-        
-        <MaterialMessage>
-          <li ref={materiaARef}>
-            <strong>타폴린</strong>가방 본체의 소재로서 5년 이상 트럭에 씌워져 달린 방수포들 중에서 개성을 표현하기에 적합한 프린트를 보유하고, 파손율이 적은 것을 까다롭게 선별
-          </li>
-          <li ref={materiaBRef}>
-            <strong>자전거 바퀴의 고무 튜브</strong>가방의 테두리를 감싸는 ‘라이닝’ 용도로 유연한 고무의 성질을 활용해 가방 모서리를 튼튼하게 보호하며, 본체 덮개에 안정감 강화
-          </li>
-          <li ref={materiaCRef}>
-            <strong>자동차 안전벨트</strong>프라이탁 가방의 스트랩은 폴리에스터 고강력사 소재 특성상 뛰어난 내구성과 좋은 착용감 가진 자동차 안전벨트를 활용
-          </li>
-        </MaterialMessage>
+      {isLoaded &&
+        <div>
+          <CanvasBox>
+            <canvas ref={canvasRef} />
+          </CanvasBox>
+          
+          <MaterialMessage>
+            <li ref={materiaARef}>
+              <strong>타폴린</strong>가방 본체의 소재로서 5년 이상 트럭에 씌워져 달린 방수포들 중에서 개성을 표현하기에 적합한 프린트를 보유하고, 파손율이 적은 것을 까다롭게 선별
+            </li>
+            <li ref={materiaBRef}>
+              <strong>자전거 바퀴의 고무 튜브</strong>가방의 테두리를 감싸는 ‘라이닝’ 용도로 유연한 고무의 성질을 활용해 가방 모서리를 튼튼하게 보호하며, 본체 덮개에 안정감 강화
+            </li>
+            <li ref={materiaCRef}>
+              <strong>자동차 안전벨트</strong>프라이탁 가방의 스트랩은 폴리에스터 고강력사 소재 특성상 뛰어난 내구성과 좋은 착용감 가진 자동차 안전벨트를 활용
+            </li>
+          </MaterialMessage>
 
-        <InsideMessage>
-          <li ref={insideARef}>궂은 날씨에도 안전하게</li>
-          <li ref={insideBRef}>지퍼로 한 번 더 안전하게</li>
-          <li ref={insideCRef}>활용도 높은 포켓공간</li>
-          <li ref={insideDRef}>
-            <span>내부에는 안감이 없기 때문에 쉽게 분해되고, 필요한 경우 언제나 수리할 수 있으므로 제품을 오래도록 사용 해보세요. 또한, 우리는 타폴린, 안전벨트, 고무 튜브 외에도 100% 재활용이 가능한 PET 소재를 활용하여 경량성과 우수한 촉감을 겸비하는 새로운 프라이탁도 탄생시켰죠</span>
-          </li>
-        </InsideMessage>
-      </div>
+          <InsideMessage>
+            <li ref={insideARef}>궂은 날씨에도 안전하게</li>
+            <li ref={insideBRef}>지퍼로 한 번 더 안전하게</li>
+            <li ref={insideCRef}>활용도 높은 포켓공간</li>
+            <li ref={insideDRef}>
+              <span>내부에는 안감이 없기 때문에 쉽게 분해되고, 필요한 경우 언제나 수리할 수 있으므로 제품을 오래도록 사용 해보세요. 또한, 우리는 타폴린, 안전벨트, 고무 튜브 외에도 100% 재활용이 가능한 PET 소재를 활용하여 경량성과 우수한 촉감을 겸비하는 새로운 프라이탁도 탄생시켰죠</span>
+            </li>
+          </InsideMessage>
+        </div>
+      }
 		</Content>
 	)
 }
