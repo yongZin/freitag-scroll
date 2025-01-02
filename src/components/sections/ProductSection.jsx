@@ -85,7 +85,11 @@ const ProductSection = () => {
 	const messageTrioCRef = useRef(null);
 	const productTopRef = useRef(null);
 	const productBottomRef = useRef(null);
-  const { setSectionConfig, activeSection } = useContext(SectionContext);
+  const {
+    setSectionConfig,
+    activeSection,
+    isLoaded
+  } = useContext(SectionContext);
   const productImages = Array.from({ length: 20 }, (_, i) => {
     const number = i + 1;
 
@@ -103,11 +107,25 @@ const ProductSection = () => {
 
       const productParent = product.parentElement.getBoundingClientRect();
       const productHeight = product.offsetHeight * 10;
-
-      console.log(`${productParent.width} - ${productHeight} = ${productParent.width - productHeight}`);
       
       return productParent.width - productHeight;
     }
+
+    const handleResize = () => { //리사이즈 시 calcProductMove 다시 계산
+      setSectionConfig((prevConfig) => {
+        const productSection = prevConfig.find(section => section.id === "product-section");
+        
+        if (!productSection) return prevConfig;
+
+        //기존 설정은 유지하고 translate만 업데이트
+        productSection.productTop.values.translate.in[0] = calcProductMove();
+        productSection.productBottom.values.translate.in[1] = calcProductMove();
+
+        return [...prevConfig];
+      });
+    }
+
+    window.addEventListener('resize', handleResize);
 
     const animationConfig = {
       id: "product-section",
@@ -200,32 +218,34 @@ const ProductSection = () => {
       id="product-section"  
       className={activeSection === "product-section" && "on"}
     >
-      <RowBox>
-        <ProductBox ref={productTopRef}>
-          {productImages.slice(0, 10).map(({ number, path }) => (
-            <li key={number}>
-              <img src={path} alt="프라이탁 가방" />
-            </li>
-          ))}
-        </ProductBox>
+      {isLoaded &&
+        <RowBox>
+          <ProductBox ref={productTopRef}>
+            {productImages.slice(0, 10).map(({ number, path }) => (
+              <li key={number}>
+                <img src={path} alt="프라이탁 가방" />
+              </li>
+            ))}
+          </ProductBox>
 
-        <MessageBox>
-          <p ref={messagePRef}>프라이탁의 다양한</p>
-          <ul>
-            <li ref={messageTrioARef}>컬러감</li>
-            <li ref={messageTrioBRef}>수납력</li>
-            <li ref={messageTrioCRef}>디자인</li>
-          </ul>
-        </MessageBox>
-          
-        <ProductBox ref={productBottomRef}>
-          {productImages.slice(10).map(({ number, path }) => (
-            <li key={number}>
-              <img src={path} alt="프라이탁 가방" />
-            </li>
-          ))}
-        </ProductBox>
-      </RowBox>
+          <MessageBox>
+            <p ref={messagePRef}>프라이탁의 다양한</p>
+            <ul>
+              <li ref={messageTrioARef}>컬러감</li>
+              <li ref={messageTrioBRef}>수납력</li>
+              <li ref={messageTrioCRef}>디자인</li>
+            </ul>
+          </MessageBox>
+            
+          <ProductBox ref={productBottomRef}>
+            {productImages.slice(10).map(({ number, path }) => (
+              <li key={number}>
+                <img src={path} alt="프라이탁 가방" />
+              </li>
+            ))}
+          </ProductBox>
+        </RowBox>
+      }
     </Content>
   );
 }
