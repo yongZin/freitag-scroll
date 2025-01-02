@@ -104,6 +104,8 @@ const ProductSection = () => {
       const productParent = product.parentElement.getBoundingClientRect();
       const productHeight = product.offsetHeight * 10;
 
+      console.log(`${productParent.width} - ${productHeight} = ${productParent.width - productHeight}`);
+      
       return productParent.width - productHeight;
     }
 
