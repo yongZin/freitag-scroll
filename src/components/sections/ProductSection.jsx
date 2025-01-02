@@ -2,6 +2,7 @@
 import styled from "styled-components";
 import { useRef, useEffect, useContext } from "react";
 import { SectionContext } from "../context/SectionContext";
+import img from "/assets/images/products/product-1.png";
 
 const RowBox = styled.div`
   width:100%;
@@ -91,7 +92,7 @@ const ProductSection = () => {
 
     return {
       number,
-      path: `public/assets/images/products/product-${number}.png`
+      path: `/assets/images/products/product-${number}.png`
     }
   });
 
@@ -199,6 +200,7 @@ const ProductSection = () => {
       className={activeSection === "product-section" && "on"}
     >
       <RowBox>
+        <img src={img} alt="aaa" />
         <ProductBox ref={productTopRef}>
           {productImages.slice(0, 10).map(({ number, path }) => (
             <li key={number}>
@@ -215,7 +217,7 @@ const ProductSection = () => {
             <li ref={messageTrioCRef}>디자인</li>
           </ul>
         </MessageBox>
-
+          
         <ProductBox ref={productBottomRef}>
           {productImages.slice(10).map(({ number, path }) => (
             <li key={number}>
