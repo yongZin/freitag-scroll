@@ -12,18 +12,22 @@ export const SectionProvider = ({ children }) => {
   useEffect(() => { //로딩 애니메이션 종료
     if(isLoaded) {
       window.scrollTo(0, 1);
+      document.body.style.overflow = "auto";
 
       const timer = setTimeout(() => {
+        window.scrollTo(0, 0);
         setHideLoading(true);
-      }, 2000);
+      }, 800);
 
       return () => clearTimeout(timer);
+    } else{
+      document.body.style.overflow = "hidden";
     }
   }, [isLoaded]);
 
   useEffect(() => {
     const handleBeforeUnload = () => { //새로고침 시 스크롤 최상단
-      window.scrollTo(0, 0);
+      // window.scrollTo(0, 0);
       if(sectionConfig) setIsLoaded(true);
     }
 
