@@ -1,82 +1,106 @@
-import { useContext, useEffect } from "react";
+import { useContext, useEffect, useCallback } from "react";
+import { useLocation } from "react-router-dom";
 import { SectionContext } from "../context/SectionContext";
 
 export const useCanvasImages = () => { //캔버스 이미지 저장
-	const { sectionConfig, setSectionConfig } = useContext(SectionContext);
+	const {
+		sectionConfig, setSectionConfig,
+		isLoaded, setIsLoaded
+	} = useContext(SectionContext);
 
 	useEffect(() => {
-		if (sectionConfig.length === 0) return; //sectionInfo에 정보가 없다면 리턴
-		
-		const updatedSectionInfo = sectionConfig.map((section) => {
-			if(!section.canvas || !section.canvas.values) return section; //canvas 정보가 없으면 리턴
+		if(sectionConfig.length === 0) return;
 
-			if (section.canvas.values.images && 
-				section.canvas.values.images.length === section.canvas.values.imageCount) {
-				return section; //imageCount만큼 완료되면 종료
-			}
-
-			const { imageSrc, imageType, imageCount } = section.canvas.values;
-
-			const images = Array.from({ length: imageCount }, (_, i) => {
+		const loadImage = (src) => { //모든 이미지 로드
+			return new Promise((resolve) => {
 				const image = new Image();
 
-				image.src = `${imageSrc}${i + 1}.${imageType}`;
+				image.src = src;
+				image.onload = () => resolve(image);
+				image.onerror = () => resolve(null); //에러도 완료로 간주
+			});
+		};
 
-				return image;
+		const loadSectionImages = async () => { //각 섹션별 canvas이미지 저장
+			const updateSectionInfo = await Promise.all(
+				sectionConfig.map(async (section) => {
+					if(!section.canvas || !section.canvas.values) return section; //canvas 정보가 없으면 리턴
+
+					const { imageSrc, imageType, imageCount } = section.canvas.values;
+
+					if(!imageSrc || !imageCount || !imageType) return section;
+
+					const images = await Promise.all( //imageCount만큼 이미지 저장
+						Array.from({ length: imageCount }, (_, i) =>
+							loadImage(`${imageSrc}${i + 1}.${imageType}`)
+						)
+					);
+
+					return {
+						...section,
+						canvas: {
+							...section.canvas,
+							values: {
+								...section.canvas.values,
+								images: images.filter(Boolean), //null 이미지 제외
+							},
+						},
+					};
+				})
+			);
+			
+			//이미지 변경사항 체크
+			const hasChanges = updateSectionInfo.some((section, index) => 
+				section.canvas?.values?.images?.length !== sectionConfig[index]?.canvas?.values?.images?.length
+			);
+
+			//변경사항이 있으면 sectionInfo 업데이트
+			if (hasChanges) setSectionConfig(updateSectionInfo);
+
+			const allImagesLoaded = updateSectionInfo.every((section) => {
+				//모든 이미지가 저장 되었는지 확인
+				return (
+					section.canvas?.values?.images?.length === section.canvas?.values?.imageCount
+				);
 			});
 
-			return {
-				...section,
-				canvas: {
-					...section.canvas,
-					values: {
-						...section.canvas.values,
-						images
-					}
-				}
+			if (allImagesLoaded && !isLoaded) {
+				//모든 이미지가 저장 되었다면 로딩 애니메이션 종료
+				setIsLoaded(true);
 			}
-			
-		});
+		};
 
-		const hasChanges = updatedSectionInfo.some((section, index) => 
-			section.canvas?.values?.images?.length !== sectionConfig[index]?.canvas?.values?.images?.length
-		);
-
-		if (hasChanges) { //sectionInfo 최신화(이미지 추가)
-			setSectionConfig(updatedSectionInfo);
-		}
-	}, [sectionConfig, setSectionConfig]);
+		loadSectionImages();
+	}, [sectionConfig, setSectionConfig, isLoaded, setIsLoaded]);
 };
 
 export const useLayout = (containerRef) => { //섹션 스크롤 값 계산
   const { sectionConfig, setSectionConfig } = useContext(SectionContext);
 
-  useEffect(() => {
-    if (!containerRef.current) return;
+	const updateLayout = useCallback(() => {
+		const children = Array.from(containerRef.current.children);
 
-    const children = Array.from(containerRef.current.children);
-    
-    const updatedSectionInfo = sectionConfig.map((section) => {
-      const sectionElement = children.find( //해당 ID를 가진 섹션 요소 찾기
-        (child) => child.id === section.id
-      );
+		const updateSectionInfo = sectionConfig.map((section) => {
+			const sectionElement = children.find((child) => {
+				return child.id === section.id;
+			});
 
-      if (!sectionElement) return section;
+			if(!sectionElement) return section;
 
-      //섹션의 위치 계산
-      const sectionTop = sectionElement.offsetTop; //섹션별 스크롤 시작 값
-      const sectionHeight = sectionElement.offsetHeight; //섹션별 전체 높이 값
-      const sectionBottom = sectionTop + sectionHeight; //섹션별 스크롤 끝 값
-
-      return {
+			 //섹션의 위치 계산
+			 const sectionTop = sectionElement.offsetTop; //섹션별 스크롤 시작 값
+			 const sectionHeight = sectionElement.offsetHeight; //섹션별 전체 높이 값
+			 const sectionBottom = sectionTop + sectionHeight; //섹션별 스크롤 끝 값
+ 
+			 return {
         ...section,
 				sectionHeight,
         sectionTop,
         sectionBottom
       };
-    });
+		});
 
-    const hasChanges = updatedSectionInfo.some((newSection, index) => {
+		const hasChanges = updateSectionInfo.some((newSection, index) => {
       //변경사항이 있는 경우에만 상태 업데이트
       const oldSection = sectionConfig[index];
 
@@ -87,43 +111,57 @@ export const useLayout = (containerRef) => { //섹션 스크롤 값 계산
     });
 
     if (hasChanges) {
-      setSectionConfig(updatedSectionInfo);
+      setSectionConfig(updateSectionInfo);
     }
-  }, [containerRef, sectionConfig, setSectionConfig]);
+	}, [containerRef, sectionConfig, setSectionConfig]);
+
+	useEffect(() => {
+		updateLayout(); //최초 실행
+
+		window.addEventListener('resize', updateLayout);
+    
+    return () => window.removeEventListener('resize', updateLayout);
+	}, [updateLayout]);
+
 };
 
 export const useActive = () => { //활성화 섹션 찾기
 	const { sectionConfig, setActiveSection } = useContext(SectionContext);
 
-	useEffect(() => {
-		const handleScroll = () => {
-			const currentScroll = window.pageYOffset || document.documentElement.scrollTop; //현재 스크롤 위치
-	
-			const activeSection = sectionConfig.find((section) => {
-				//섹션별 시작 ~ 끝 값과 currentScroll를 비교
-				const active = currentScroll >= section.sectionTop && currentScroll < section.sectionBottom
-				
-				return active;
-			});
-	
-			if(activeSection) setActiveSection(activeSection.id);
-		}
-	
-		window.addEventListener('scroll', handleScroll);
-		
-		return () => window.removeEventListener('scroll', handleScroll);
+	const updateActiveSection = useCallback(() => {
+		const currentScroll = window.pageYOffset || document.documentElement.scrollTop; //현재 스크롤 위치
+
+		const activeSection = sectionConfig.find((section) => {
+			const active = currentScroll >= section.sectionTop && currentScroll < section.sectionBottom
+			
+			return active;
+		});
+
+		if(activeSection) setActiveSection(activeSection.id);
 	}, [sectionConfig, setActiveSection]);
+
+	useEffect(() => {
+		updateActiveSection(); //최초 실행
+
+		window.addEventListener('scroll', updateActiveSection);
+		window.addEventListener('resize', updateActiveSection);
+		
+		return () => {
+			window.removeEventListener('scroll', updateActiveSection);
+			window.removeEventListener('resize', updateActiveSection);
+		}
+	}, [updateActiveSection]);
 };
 
 export const useAnimation = () => {
-	const { activeSection, sectionConfig, isLoaded } = useContext(SectionContext);
+	const { activeSection, sectionConfig } = useContext(SectionContext);
 	
 	useEffect(() => {
 		let ticking = false;
 
 		//활성화 섹션 정보가 없거나 로딩중이라면 리턴
-		if(!activeSection && sectionConfig === 0 && !isLoaded) return;
-
+		if(!activeSection && sectionConfig === 0) return;
+		
 		const handleCanvas = ( ///Canvas 이미지 시퀀스 애니메이션
 			videoImageConfig,
 			images,
@@ -227,7 +265,6 @@ export const useAnimation = () => {
 			const currentSectionConfig = sectionConfig.find( //활성화 섹션 찾기
 				(section) => section.id === activeSection
 			);
-			
 
 			if(currentSectionConfig) {
 				const { sectionHeight, sectionTop } = currentSectionConfig; //섹션의 높이 및 스크롤 시작, 끝 값
@@ -294,5 +331,50 @@ export const useAnimation = () => {
 			window.removeEventListener('scroll', requestHandleScroll);
 			window.removeEventListener('resize', requestHandleScroll);
 		}
-	}, [activeSection, sectionConfig, isLoaded]);
+	}, [activeSection, sectionConfig]);
 };
+
+export const useScrollToTop = () => { //홈 버튼 이벤트
+  const location = useLocation();
+
+  const handleClick = useCallback((e) => {
+    if (location.pathname === "/") { //홈 화면에서 로고 클릭시 최상단으로
+      e.preventDefault();
+
+      window.scrollTo({
+        top: 0,
+        behavior: "smooth",
+      });
+    }
+  }, [location]);
+
+  return handleClick;
+};
+
+export const useScrollDirection = () => { //스크롤 내릴떄 헤더 가리기
+	const { scrollDirection, setScrollDirection } = useContext(SectionContext);
+	
+	useEffect(() => {
+		let lastScrollY = window.pageYOffset || document.documentElement.scrollTop; //기본값
+
+		const updateScrollDirection = () => {
+			const currentScrollY = window.pageYOffset || document.documentElement.scrollTop; //현재 스크롤Y 위치
+			const direction = currentScrollY > lastScrollY ? "down" : "up"; //현재 스크롤이 더 크면 "down" 작으면 "up"(크면 내리는 방향, 작으면 올리는 방향)
+
+			if(
+				direction !== scrollDirection &&
+				Math.abs(currentScrollY - lastScrollY) > 10 //절대값(음수 대비)
+			) { //스크롤이 일정 범위 이상 움직인 경우
+				setScrollDirection(direction);
+			}
+
+			lastScrollY = currentScrollY > 0 ? currentScrollY : 0; //lastScrollY 업데이트
+		}
+
+		window.addEventListener("scroll", updateScrollDirection);
+    
+		return () => {
+      window.removeEventListener("scroll", updateScrollDirection);
+    };
+	}, [scrollDirection, setScrollDirection]);
+}
