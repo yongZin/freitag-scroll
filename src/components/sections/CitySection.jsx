@@ -34,9 +34,26 @@ const MessageBox = styled.div`
     font-size:60px;
     font-family:var(--f-ebold);
     text-align:center;
+    transition:0.3s;
     opacity:0;
     color:#fff;
+    word-break:keep-all;
   }
+  @media ${props => props.theme.tablet} {
+    p{
+      font-size:55px;
+    }
+	}
+  @media ${props => props.theme.mobile} {
+    p{
+      font-size:50px;
+    }
+	}
+  @media ${props => props.theme.mobile_xs} {
+    p{
+      font-size:40px;
+    }
+	}
 `;
 const Content = styled.section`
   height:200vh;
@@ -60,8 +77,7 @@ const CitySection = () => {
 	const videoRef = useRef(null);
   const {
     setSectionConfig,
-    activeSection,
-    isLoaded
+    activeSection
   } = useContext(SectionContext);
 
   const animationConfig = useMemo(() => {
@@ -89,11 +105,11 @@ const CitySection = () => {
         target: messageRef,
         values: {
           translate: {
-            in: [30, 0, { start: 0.2, end: 0.3 }],
+            in: [30, 0, { start: 0.3, end: 0.4 }],
             out: [0, 0, { start: 1, end: 1 }],
           },
           opacity: {
-            in: [0, 1, { start: 0.2, end: 0.25 }],
+            in: [0, 1, { start: 0.3, end: 0.35 }],
             out: [1, 1, { start: 1, end: 1 }],
           }
         }
@@ -128,24 +144,22 @@ const CitySection = () => {
       ref={contentRef}
       className={activeSection === "city-section" && "on"}
     >
-      {isLoaded &&
-        <div>
-          <Background ref={backgroundRef}></Background>
+      <div>
+        <Background ref={backgroundRef}></Background>
 
-          <VideoBox>
-            <video
-              ref={videoRef}
-              muted playsInline loop
-            >
-              <source src="/assets/videos/city.mp4" />
-            </video>
-          </VideoBox>
+        <VideoBox>
+          <video
+            ref={videoRef}
+            muted playsInline loop
+          >
+            <source src="/assets/videos/city.mp4" />
+          </video>
+        </VideoBox>
 
-          <MessageBox>
-            <p ref={messageRef}>실용적이고 도시적인 감각</p>
-          </MessageBox>
-        </div>
-      }
+        <MessageBox>
+          <p ref={messageRef}>실용적이고 도시적인 감각</p>
+        </MessageBox>
+      </div>
     </Content>
   );
 }

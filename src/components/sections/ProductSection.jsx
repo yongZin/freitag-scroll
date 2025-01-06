@@ -67,6 +67,41 @@ const MessageBox = styled.ul`
       }
     }
   }
+  @media ${props => props.theme.tablet} {
+    >p{
+      font-size:55px;
+      margin-right:15px;
+    }
+    >ul{
+      width:150px;
+      height:70px;
+      li{
+        font-size:55px;
+      }
+    }
+	}
+  @media ${props => props.theme.mobile} {
+    >p{
+      font-size:38px;
+      margin-right:8px;
+    }
+    >ul{
+      width:100px;
+      height:49px;
+      li{
+        font-size:38px;
+      }
+    }
+	}
+  @media ${props => props.theme.mobile_xs} {
+    flex-direction:column;
+    >p{
+      margin-right:0;
+    }
+    >ul{
+      margin-top:12px;
+    }
+	}
 `;
 const Content = styled.section`
   height:500vh;
@@ -87,9 +122,9 @@ const ProductSection = () => {
 	const productBottomRef = useRef(null);
   const {
     setSectionConfig,
-    activeSection,
-    isLoaded
+    activeSection
   } = useContext(SectionContext);
+  
   const productImages = Array.from({ length: 20 }, (_, i) => {
     const number = i + 1;
 
@@ -102,8 +137,8 @@ const ProductSection = () => {
   useEffect(() => {
     const calcProductMove = () => { //ProductBox 이동거리 계산
       const product = productTopRef.current;
-
-      if(! product) return 0;
+      
+      if(!product) return 0;
 
       const productParent = product.parentElement.getBoundingClientRect();
       const productHeight = product.offsetHeight * 10;
@@ -134,7 +169,7 @@ const ProductSection = () => {
         values: {
           opacity: {
             in: [0, 1, { start: 0, end: 0.1 }],
-            out: [1, 1, { start: 1, end: 1 }],
+            out: [1, 0, { start: 0.9, end: 1 }],
           }
         }
       },
@@ -173,7 +208,7 @@ const ProductSection = () => {
           },
           opacity: {
             in: [0, 1, { start: 0.6, end: 0.65 }],
-            out: [1, 1, { start: 1, end: 1 }],
+            out: [1, 0, { start: 0.9, end: 1 }],
           }
         }
       },
@@ -187,7 +222,7 @@ const ProductSection = () => {
           },
           opacity: {
             in: [0, 1, { start: 0.1, end: 0.2 }],
-            out: [1, 1, { start: 1, end: 1 }],
+            out: [1, 0, { start: 0.8, end: 0.9 }],
           }
         }
       },
@@ -201,7 +236,7 @@ const ProductSection = () => {
           },
           opacity: {
             in: [0, 1, { start: 0.1, end: 0.2 }],
-            out: [1, 1, { start: 1, end: 1 }],
+            out: [1, 0, { start: 0.8, end: 0.9 }],
           }
         }
       },
@@ -211,6 +246,10 @@ const ProductSection = () => {
       const addInfo = prevConfig.some(item => item.id === animationConfig.id);
       return addInfo ? prevConfig : [...prevConfig, animationConfig];
     });
+
+    return () => {
+      window.removeEventListener('resize', handleResize);
+    };
   }, [setSectionConfig]);
   
 	return (
@@ -218,34 +257,32 @@ const ProductSection = () => {
       id="product-section"  
       className={activeSection === "product-section" && "on"}
     >
-      {isLoaded &&
-        <RowBox>
-          <ProductBox ref={productTopRef}>
-            {productImages.slice(0, 10).map(({ number, path }) => (
-              <li key={number}>
-                <img src={path} alt="프라이탁 가방" />
-              </li>
-            ))}
-          </ProductBox>
+      <RowBox>
+        <ProductBox ref={productTopRef}>
+          {productImages.slice(0, 10).map(({ number, path }) => (
+            <li key={number}>
+              <img src={path} alt="프라이탁 가방" />
+            </li>
+          ))}
+        </ProductBox>
 
-          <MessageBox>
-            <p ref={messagePRef}>프라이탁의 다양한</p>
-            <ul>
-              <li ref={messageTrioARef}>컬러감</li>
-              <li ref={messageTrioBRef}>수납력</li>
-              <li ref={messageTrioCRef}>디자인</li>
-            </ul>
-          </MessageBox>
-            
-          <ProductBox ref={productBottomRef}>
-            {productImages.slice(10).map(({ number, path }) => (
-              <li key={number}>
-                <img src={path} alt="프라이탁 가방" />
-              </li>
-            ))}
-          </ProductBox>
-        </RowBox>
-      }
+        <MessageBox>
+          <p ref={messagePRef}>프라이탁의 다양한</p>
+          <ul>
+            <li ref={messageTrioARef}>컬러감</li>
+            <li ref={messageTrioBRef}>수납력</li>
+            <li ref={messageTrioCRef}>디자인</li>
+          </ul>
+        </MessageBox>
+          
+        <ProductBox ref={productBottomRef}>
+          {productImages.slice(10).map(({ number, path }) => (
+            <li key={number}>
+              <img src={path} alt="프라이탁 가방" />
+            </li>
+          ))}
+        </ProductBox>
+      </RowBox>
     </Content>
   );
 }

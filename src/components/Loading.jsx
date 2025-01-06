@@ -39,7 +39,7 @@ const Wrap = styled.div`
 	background-color:#fff;
 	position:fixed;
 	inset:0;
-	z-index:100;
+	z-index:1000;
 	&.on{
 		transition:0.8s;
 		opacity:0;

@@ -35,12 +35,29 @@ const Messages = styled.ul`
     padding:0 20px;
     font-size:70px;
     font-family:var(--f-ebold);;
+    word-break:keep-all;
     color:#fff;
     position:absolute;
     top:0;
     z-index:3;
     opacity:0;
+    transition:0.2s;
   }
+  @media ${props => props.theme.tablet} {
+    li{
+      font-size:55px;
+    }
+	}
+  @media ${props => props.theme.mobile} {
+    li{
+      font-size:45px;
+    }
+	}
+  @media ${props => props.theme.mobile_xs} {
+    li{
+      font-size:35px;
+    }
+	}
 `;
 const Content = styled.section`
   height:400vh;
@@ -61,8 +78,7 @@ const TopSection = () => {
   const messageCRef = useRef(null);
   const {
     setSectionConfig,
-    activeSection,
-    isLoaded
+    activeSection
   } = useContext(SectionContext);
 
   const animationConfig = useMemo(() => {
@@ -153,21 +169,19 @@ const TopSection = () => {
       ref={contentRef}
       className={activeSection === "top-section" && "on"}
     >
-      {isLoaded &&
-        <div>
-          <Background ref={backgroundRef} />
+      <div>
+        <Background ref={backgroundRef} />
 
-          <CanvasBox>
-            <canvas ref={canvasRef} />
-          </CanvasBox>
+        <CanvasBox>
+          <canvas ref={canvasRef} />
+        </CanvasBox>
 
-          <Messages>
-            <li ref={messageARef}>재활용이 아닌 새활용</li>
-            <li ref={messageBRef}>버려진 트럭 방수포에</li>
-            <li ref={messageCRef}>새로운 가치를 더하다</li>
-          </Messages>
-        </div>
-      }
+        <Messages>
+          <li ref={messageARef}>재활용이 아닌 새활용</li>
+          <li ref={messageBRef}>버려진 트럭 방수포에</li>
+          <li ref={messageCRef}>새로운 가치를 더하다</li>
+        </Messages>
+      </div>
     </Content>
   );
 }
