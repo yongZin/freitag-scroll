@@ -35,6 +35,12 @@ const GlobalStyle = createGlobalStyle`
     width:100%;
   }
 
+  a{
+    text-decoration:none;
+    outline:none;
+    color:inherit;
+  }
+
   button{
     font-family:var(--f-bold);
     border:0;
